@@ -24,6 +24,17 @@
  * the jqPlot distribution in resource/jqPlot. See <a
  * href='http://http://www.jqplot.com' target='_blank'>jqPlot website</a>
  * for information on how to use jqPlot.
+ *
+ * <pre class='javascript'>
+ * var data = [[['frogs',3], ['buzzards',7], ['deer',2.5], ['turkeys',6], ['moles',5], ['ground hogs',4]]],           
+ * var options = function($jqplot){return{                  
+ *     title: 'Pie Chart with Legend and sliceMargin',         
+ *     seriesDefaults:{renderer:$jqplot.PieRenderer, rendererOptions:{sliceMargin:8}},         
+ *     legend:{show:true}         
+ *  }};        
+ * var plugins = ['pieRenderer'];   
+ * var plot = new qxjqplot.Plot(data,options,plugins); 
+ * </pre>
  */
 qx.Class.define("qxjqplot.Plot", {
     extend : qx.ui.core.Widget,
@@ -32,6 +43,7 @@ qx.Class.define("qxjqplot.Plot", {
      * @param dataSeries {Array} data array to plot
      * @param getOptions {Callback|Map} wither an option map or a function returning the option map after being called with jQuery.jqplot as an argument.
      * @param pluginArr  {Array} array of plugin base names. (use "cursor" not "jqplot.cursor.js")
+     *
      */
 
     construct: function(dataSeries,getOptions,pluginArr){
