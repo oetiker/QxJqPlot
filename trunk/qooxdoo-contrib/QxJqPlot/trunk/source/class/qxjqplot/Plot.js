@@ -173,8 +173,11 @@ qx.Class.define("qxjqplot.Plot", {
                     // with out .flush() the plot div will not yet be
                     // resized, causing the jqPlot not to render
                     // properly
-                    qx.html.Element.flush();
-                    plot.replot();
+                    qx.html.Element.flush();                    
+                    plot.replot({
+                        clear: true,
+                        resetAxes: true
+                    });
                 },this);
             }
         }
