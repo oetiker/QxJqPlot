@@ -166,7 +166,7 @@ qx.Class.define("qxjqplot.Plot", {
             var el = this.getContentElement().getDomElement();
             /* make sure the element is here yet. Else wait until things show up */
             if (el == null){
-                this.addListenerOnce('appear',qx.lang.Function.bind(this.__addCanvas,this,dataSeries,optionsObj));
+                this.addListenerOnce('appear',qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions));
             } else {
               /* with IE and excanvas, we have to
                  add the missing method to the canvas
