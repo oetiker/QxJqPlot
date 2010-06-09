@@ -121,8 +121,9 @@ qx.Class.define("qxjqplot.Plot", {
                 else {
                     qxjqplot.Plot.LOADING[script] = this;
                     var sl = new qx.io.ScriptLoader();
-                    sl.load("resource/jqPlot/"+script, function(status){
-                        this.debug("Loading "+script+": "+status);
+                    var src = qx.util.ResourceManager.getInstance().toUri("jqPlot/"+script);
+                    sl.load(src, function(status){
+                        this.debug("Loading "+src+": "+status);
                         if (status == 'success'){
                             this.__loadScriptArr(codeArr,handler);
                             qxjqplot.Plot.LOADED[script] = true;
@@ -145,7 +146,7 @@ qx.Class.define("qxjqplot.Plot", {
                 var el = document.createElement("link");
                 el.type = "text/css";
                 el.rel="stylesheet";
-                el.href="resource/jqPlot/"+url;
+                el.href=qx.util.ResourceManager.getInstance().toUri("jqPlot/"+url);
                 setTimeout(function() {
                     head.appendChild(el);
                 }, 0);
@@ -177,8 +178,9 @@ qx.Class.define("qxjqplot.Plot", {
 
                 var id = 'jqPlotId'+(qxjqplot.Plot.INSTANCE_COUNTER++);
                 qx.bom.element.Attribute.set(el, 'id', id); 
-
+                
                 var options = qx.lang.Type.isFunction(getOptions) ? getOptions(jQuery.jqplot) : getOptions;                   
+                jQuery.jqplot.config.enablePlugins = false;                
                 var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);
                 this.fireDataEvent('plotCreated', plot);
                 this.addListener('resize',function(){
@@ -186,6 +188,13 @@ qx.Class.define("qxjqplot.Plot", {
                     // resized, causing the jqPlot not to render
                     // properly
                     qx.html.Element.flush();                    
+                    // since we are loading plugins dynamically
+                    // it could be that others have been added since the last round
+                    // so we have to run the preInitHooks again or some plugins might
+                    // try to access non accessible structures
+                    for (var i=0; i<jQuery.jqplot.preInitHooks.length; i++) {
+                        jQuery.jqplot.preInitHooks[i].call(plot, id, dataSeries, options);
+                    }
                     plot.replot({
                         clear: true,
                         resetAxes: true

@@ -39,10 +39,10 @@ qx.Class.define("qxjqplot.demo.Application", {
                 }
                 // using a cursor together with plot.redraw() and multiple graphs seems not to work
                 // as the cursor plugin suddenly becomes unknown.
-                // ,cursor: {show: true} 
+                ,cursor: {show: true} 
             }},
             plugins: ['dateAxisRenderer','canvasTextRenderer','canvasAxisTickRenderer'
-                // ,'cursor'
+                ,'cursor'
             ]
         },{
             title: 'Mixed Data Input',
