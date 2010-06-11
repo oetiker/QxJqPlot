@@ -123,8 +123,8 @@ qx.Class.define("qxjqplot.Plot", {
                     var sl = new qx.io.ScriptLoader();
                     var src = qx.util.ResourceManager.getInstance().toUri("jqPlot/"+script);
                     sl.load(src, function(status){
-                        this.debug("Loading "+src+": "+status);
                         if (status == 'success'){
+                            // this.debug("Dynamically loaded "+src+": "+status);
                             this.__loadScriptArr(codeArr,handler);
                             qxjqplot.Plot.LOADED[script] = true;
                         }
