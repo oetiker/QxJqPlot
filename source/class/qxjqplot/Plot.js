@@ -165,7 +165,7 @@ qx.Class.define("qxjqplot.Plot", {
             var el = this.getContentElement().getDomElement();
             /* make sure the element is here yet. Else wait until things show up */
             if (el == null){
-                this.addListenerOnce('appear',qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions));
+                this.addListenerOnce('appear',qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions),this);
             } else {
               /* with IE and excanvas, we have to
                  add the missing method to the canvas
@@ -182,8 +182,8 @@ qx.Class.define("qxjqplot.Plot", {
                 jQuery.jqplot.config.enablePlugins = false;                
                 var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);
                 this.fireDataEvent('plotCreated', plot);
-                this.addListener('resize',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options));
-                this.addListener('appear',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options));
+                this.addListener('resize',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options),this);
+                this.addListener('appear',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options),this);
             }
         },
         /**
