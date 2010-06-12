@@ -82,7 +82,27 @@ qx.Class.define("qxjqplot.Plot", {
         /**
          * map of objects in the process of loading a particular script
          */
-        LOADING: {}
+        LOADING: {},
+        /**
+         * Default Options for graphs. They get merged (non overwriting to the graph object).
+         */
+        DEFAULT_OPTIONS: {
+            // thanks to http://ui.openoffice.org/VisualDesign/OOoChart_colors_drafts.html
+            seriesColors:  [
+                '#005796', '#ffbf17', '#46b535', '#e93f80', '#bbe3ff',
+                '#ff811b', '#007333', '#ffe370', '#a6004f', '#a6004f',
+                '#bde734', '#0094d8', '#ffbedd'
+            ],
+            grid: { 
+                background: '#ffffff'
+            },
+            seriesDefaults: {
+                lineWidth: 2,
+                markerOptions: {
+                    size: 7
+                }
+            },
+        }
     },
     events : {
         /**
@@ -178,9 +198,10 @@ qx.Class.define("qxjqplot.Plot", {
                 var id = 'jqPlotId'+(qxjqplot.Plot.INSTANCE_COUNTER++);
                 qx.bom.element.Attribute.set(el, 'id', id); 
                 
-                var options = qx.lang.Type.isFunction(getOptions) ? getOptions(jQuery.jqplot) : getOptions;                   
+                var options = qx.lang.Type.isFunction(getOptions) ? getOptions(jQuery.jqplot) : getOptions;
+                qx.lang.Object.mergeWith(options,qxjqplot.Plot.DEFAULT_OPTIONS,false);
                 jQuery.jqplot.config.enablePlugins = false;                
-                var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);
+                var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);        
                 this.fireDataEvent('plotCreated', plot);
                 this.addListener('resize',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options),this);
                 this.addListener('appear',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options),this);
