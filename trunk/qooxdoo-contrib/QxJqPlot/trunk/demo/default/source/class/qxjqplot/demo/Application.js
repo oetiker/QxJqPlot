@@ -27,7 +27,7 @@ qx.Class.define("qxjqplot.demo.Application", {
                         tickOptions:{
                             formatString:'%Y-%m-%d', 
                             fontSize:'8pt',
-                            fontFamilly: 'Tahoma',
+                            fontFamilly: 'sans-serif',
                             angle:-20,
                             enableFontSupport: true
                         }
