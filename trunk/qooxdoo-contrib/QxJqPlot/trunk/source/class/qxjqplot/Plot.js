@@ -101,7 +101,7 @@ qx.Class.define("qxjqplot.Plot", {
                 markerOptions: {
                     size: 7
                 }
-            },
+            }
         }
     },
     events : {
