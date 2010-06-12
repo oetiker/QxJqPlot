@@ -25,10 +25,11 @@ qx.Class.define("qxjqplot.demo.Application", {
                         renderer:$jqplot.DateAxisRenderer,
                         rendererOptions:{tickRenderer:$jqplot.CanvasAxisTickRenderer},
                         tickOptions:{
-                            formatString:'%b %#d, %Y', 
-                            fontSize:'10pt', 
-                            fontFamily:'Tahoma', 
-                            angle:-30
+                            formatString:'%Y-%m-%d', 
+                            fontSize:'8pt',
+                            fontFamilly: 'Tahoma',
+                            angle:-20,
+                            enableFontSupport: true
                         }
                     },
                     yaxis:{
