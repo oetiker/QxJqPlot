@@ -184,10 +184,14 @@ qx.Class.define("qxjqplot.demo.Application", {
         }
         ];
 
-        var x=0;
-        var y=0;
         for (var i=0;i<plotDemo.length;i++){
-            var win = new qx.ui.window.Window(plotDemo[i].title);
+            this.makePlot(plotDemo[i].data,plotDemo[i].options,plotDemo[i].plugins,plotDemo[i].title);
+        };
+    },
+    x: 0,
+    y: 0,
+    makePlot: function(data,options,plugins,title){
+            var win = new qx.ui.window.Window(title);
             win.set({
                 width: 600,
                 height: 400,
@@ -195,14 +199,13 @@ qx.Class.define("qxjqplot.demo.Application", {
                 showClose: false,
                 layout: new qx.ui.layout.Grow()
             });
-            this.getRoot().add(win, {left:x+=60, top:y+=50});
+            this.getRoot().add(win, {left:this.x+=60, top:this.y+=50});
             win.open();
             var plot = new qxjqplot.Plot(
-                plotDemo[i].data,
-                plotDemo[i].options,
-                plotDemo[i].plugins
+                data,
+                options,
+                plugins
             );
             win.add(plot);
-        }
     }
 }});
