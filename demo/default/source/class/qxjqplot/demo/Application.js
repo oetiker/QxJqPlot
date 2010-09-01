@@ -97,7 +97,7 @@ qx.Class.define("qxjqplot.demo.Application", {
             plugins: ['pieRenderer']
         },{
             title: 'Plot with Zooming and 3 Y Axes', 
-            plugins: ['dateAxisRenderer','cursor'],
+            plugins: ['cursor'],
             data: [
                 [[0.0,85.0],[10.0,87.4],[20.0,90.0],[30.0,91.3],[40.0,93.5],[50.0,94.1],[60.0,95.4],[70.0,95.8],
                 [80.0,96.1],[90.0,97.6],[100.0,97.4],[110.0,97.7],[120.0,97.9],[130.0,98.3],[140.0,97.9],[150.0,98.4],
@@ -167,7 +167,7 @@ qx.Class.define("qxjqplot.demo.Application", {
                     {yaxis:'y2axis'}, 
                     {yaxis:'y3axis'}
                 ], 
-                cursor: {show: true,tooltipLocation:'sw', zoom:true, clickReset:true}, 
+                cursor: {tooltipLocation:'sw', zoom:true, clickReset:true,showTooltipGridPosition:true,show: true}, 
                 axesDefaults:{useSeriesColor: true}, 
                 axes:{
                     xaxis:{min:0, max:1600}, 

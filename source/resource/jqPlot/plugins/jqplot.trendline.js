@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * Copyright (c) 2009 - 2010 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
  * under both the MIT and GPL version 2.0 licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
@@ -68,10 +68,11 @@
         // prop: shadowDepth
         // number of strokes to make of the shadow.
         this.shadowDepth = 3;
+        this.isTrendline = true;
         
     };
     
-    $.jqplot.postParseSeriesOptionsHooks.push(parseTrendLineOptions);
+    $.jqplot.postSeriesInitHooks.push(parseTrendLineOptions);
     $.jqplot.postDrawSeriesHooks.push(drawTrendline);
     $.jqplot.addLegendRowHooks.push(addTrendlineLegend);
     
@@ -89,7 +90,7 @@
 
     // called within scope of a series
     function parseTrendLineOptions (seriesDefaults, options) {
-        if (this.renderer.constructor != $.jqplot.PieRenderer) {
+        if (this.renderer.constructor == $.jqplot.LineRenderer) {
             this.trendline = new $.jqplot.Trendline();
             options = options || {};
             $.extend(true, this.trendline, {color:this.color}, seriesDefaults.trendline, options.trendline);
@@ -108,7 +109,6 @@
             var data = options.data || this.data;
             fit = fitData(data, this.trendline.type);
             var gridData = options.gridData || this.renderer.makeGridData.call(this, fit.data);
-        
             this.trendline.renderer.draw.call(this.trendline, sctx, gridData, {showLine:true, shadow:this.trendline.shadow});
         }
     }

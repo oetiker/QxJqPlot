@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * Copyright (c) 2009 - 2010 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
  * under both the MIT and GPL version 2.0 licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
@@ -168,6 +168,7 @@
                 initDragPoint(plot, neighbor);
                 drag.markerRenderer.draw(s.gridData[neighbor.pointIndex][0], s.gridData[neighbor.pointIndex][1], dc._ctx);
                 ev.target.style.cursor = "move";
+                plot.target.trigger('jqlotDragStart', [neighbor.seriesIndex, neighbor.pointIndex, gridpos, datapos]);
             }
         }
         // Just in case of a hickup, we'll clear the drag canvas and reset.
@@ -194,10 +195,12 @@
             var y = (drag.constrainTo == 'x') ? dp.data[1] : datapos[s.yaxis];
             // var x = datapos[s.xaxis];
             // var y = datapos[s.yaxis];
-            s.data[dp.pointIndex] = [x,y];
+            s.data[dp.pointIndex][0] = x;
+            s.data[dp.pointIndex][1] = y;
             plot.drawSeries({preventJqPlotSeriesDrawTrigger:true}, dp.seriesIndex);
             dc._neighbor = null;
             ev.target.style.cursor = dc._cursors.pop();
+            plot.target.trigger('jqlotDragStop', [neighbor.seriesIndex, neighbor.pointIndex, gridpos, datapos]);
         }
     }
 })(jQuery);

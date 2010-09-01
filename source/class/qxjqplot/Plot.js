@@ -57,7 +57,7 @@ qx.Class.define("qxjqplot.Plot", {
          * this instead of full jQuery.
          */
         var codeArr = [
-            "jquery-1.3.2.min.js",
+            "jquery-1.4.2.min.js",
             "jquery.jqplot"+min+".js"
         ];
 
@@ -204,7 +204,6 @@ qx.Class.define("qxjqplot.Plot", {
                 var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);        
                 this.fireDataEvent('plotCreated', plot);
                 this.addListener('resize',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options),this);
-                this.addListener('appear',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options),this);
             }
         },
         __redraw: function(plot,id,dataSeries,options) {
@@ -213,19 +212,18 @@ qx.Class.define("qxjqplot.Plot", {
              // properly
               qx.html.Element.flush();                    
               if (!this.isSeeable()){
-                 // jqplot does not take kindely to being redrawn while not visible
+//               // jqplot does not take kindely to being redrawn while not visible
                  return;
               }
               // since we are loading plugins dynamically
               // it could be that others have been added since the last round
               // so we have to run the preInitHooks again or some plugins might
               // try to access non accessible structures
-              for (var i=0; i<jQuery.jqplot.preInitHooks.length; i++) {
-                  jQuery.jqplot.preInitHooks[i].call(plot, id, dataSeries, options);
-              }
+              //for (var i=0; i<jQuery.jqplot.preInitHooks.length; i++) {
+              //    jQuery.jqplot.preInitHooks[i].call(plot, id, dataSeries, options);
+              //}
               plot.replot({
-                  clear: true,
-                  resetAxes: true
+//                  resetAxes: true
               });
          }
     }
