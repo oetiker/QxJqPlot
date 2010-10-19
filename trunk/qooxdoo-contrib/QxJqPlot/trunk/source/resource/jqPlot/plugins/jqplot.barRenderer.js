@@ -5,8 +5,8 @@
  * choose the license that best suits your project and use it accordingly. 
  *
  * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
+ * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
+ * or see http://www.jqplot.com/info.php .  This is, of course, 
  * not required.
  *
  * If you are feeling kind and generous, consider supporting the project by
@@ -62,7 +62,12 @@
         // group bars into this many groups
         this.groups = 1;
         // prop: varyBarColor
-        // true to color each bar separately.
+        // true to color each bar of a series separately rather than
+        // have every bar of a given series the same color.
+        // If used for non-stacked multiple series bar plots, user should
+        // specify a separate 'seriesColors' array for each series.
+        // Otherwise, each series will set their bars to the same color array.
+        // This option has no Effect for stacked bar charts and is disabled.
         this.varyBarColor = false;
         // prop: highlightMouseOver
         // True to highlight slice when moused over.
@@ -304,7 +309,7 @@
                         }
                     }
                     if ((this.fillToZero && this._plotData[i][1] < 0) || (this.waterfall && this._data[i][1] < 0)) {
-                        if (this.varyBarColor) {
+                        if (this.varyBarColor && !this._stack) {
                             if (this.useNegativeColors) {
                                 opts.fillStyle = negativeColors.next();
                             }
@@ -317,7 +322,7 @@
                         }
                     }
                     else {
-                        if (this.varyBarColor) {
+                        if (this.varyBarColor && !this._stack) {
                             opts.fillStyle = positiveColors.next();
                         }
                         else {
@@ -369,7 +374,7 @@
                         }
                     }
                     if ((this.fillToZero && this._plotData[i][1] < 0) || (this.waterfall && this._data[i][1] < 0)) {
-                        if (this.varyBarColor) {
+                        if (this.varyBarColor && !this._stack) {
                             if (this.useNegativeColors) {
                                 opts.fillStyle = negativeColors.next();
                             }
@@ -379,7 +384,7 @@
                         }
                     }
                     else {
-                        if (this.varyBarColor) {
+                        if (this.varyBarColor && !this._stack) {
                             opts.fillStyle = positiveColors.next();
                         }
                         else {
