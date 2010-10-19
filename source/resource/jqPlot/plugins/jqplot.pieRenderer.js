@@ -5,8 +5,8 @@
  * choose the license that best suits your project and use it accordingly. 
  *
  * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
+ * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
+ * or see http://www.jqplot.com/info.php .  This is, of course, 
  * not required.
  *
  * If you are feeling kind and generous, consider supporting the project by
@@ -253,7 +253,7 @@
             }
             // Fix for IE, where it can't seem to handle 0 degree angles.  Also avoids
             // ugly line on unfilled pies.
-            if (ang1 == ang2) {
+            if (ang1 >= ang2) {
                 return;
             }            
             
@@ -371,7 +371,7 @@
                 }
                 else if (this.dataLabels == 'value') {
                     fstr = this.dataLabelFormatString || '%d';
-                    label = $.jqplot.sprintf(fstr, gd[i][1]);
+                    label = $.jqplot.sprintf(fstr, this.data[i][1]);
                 }
                 else if (this.dataLabels == 'percent') {
                     fstr = this.dataLabelFormatString || '%d%%';
@@ -606,6 +606,7 @@
             options.axesDefaults.renderer = $.jqplot.PieAxisRenderer;
             options.legend.renderer = $.jqplot.PieLegendRenderer;
             options.legend.preDraw = true;
+            options.seriesDefaults.pointLabels = {show: false};
         }
     }
     
@@ -723,9 +724,9 @@
         this.plugins.pieRenderer.highlightCanvas = new $.jqplot.GenericCanvas();
         
         // do we have any data labels?  if so, put highlight canvas before those
-        var labels = this.target.find('.jqplot-data-label:first');
+        var labels = $(this.targetId+' .jqplot-data-label');
         if (labels.length) {
-            labels.before(this.plugins.pieRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-pieRenderer-highlight-canvas', this._plotDimensions));
+            $(labels[0]).before(this.plugins.pieRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-pieRenderer-highlight-canvas', this._plotDimensions));
         }
         // else put highlight canvas before event canvas.
         else {

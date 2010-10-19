@@ -57,7 +57,7 @@ qx.Class.define("qxjqplot.Plot", {
          * this instead of full jQuery.
          */
         var codeArr = [
-            "jquery-1.4.2.min.js",
+            "jquery-1.4.3"+min+".js",
             "jquery.jqplot"+min+".js"
         ];
 
@@ -228,3 +228,4 @@ qx.Class.define("qxjqplot.Plot", {
          }
     }
 });
+

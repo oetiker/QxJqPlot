@@ -19,7 +19,19 @@ qx.Class.define("qxjqplot.demo.Application", {
                    ['26-Sep-08', 454.13], ['24-Oct-08', 379.75], ['21-Nov-08', 303], ['26-Dec-08', 308.56],
                    ['23-Jan-09', 299.14], ['20-Feb-09', 346.51], ['20-Mar-09', 325.99], ['24-Apr-09', 386.15]]],
             options: function($jqplot){return {
-                title:'Data Point Highlighting',
+                title:'Data Point Highlighting with Trendline',
+                seriesDefaults: {  
+                    trendline: { 
+                        show: true 
+                    }
+                },
+                highlighter: {
+                    sizeAdjust: 10,
+                    tooltipLocation: 'n',
+                    tooltipAxes: 'y',
+                    tooltipFormatString: '<b><i><span style="color:red;">hello</span></i></b> %.2f',
+                    useAxesFormatters: false
+                },
                 axes:{
                     xaxis:{
                         renderer:$jqplot.DateAxisRenderer,
@@ -37,13 +49,14 @@ qx.Class.define("qxjqplot.demo.Application", {
                             formatString:'$%.2f'
                         }
                     }
-                }
-                // using a cursor together with plot.redraw() and multiple graphs seems not to work
-                // as the cursor plugin suddenly becomes unknown.
-                ,cursor: {show: true} 
+                },            
+                cursor: {
+                    show: true
+                } 
             }},
-            plugins: ['dateAxisRenderer','canvasTextRenderer','canvasAxisTickRenderer'
-                ,'cursor'
+            plugins: ['highlighter','dragable',
+                      'dateAxisRenderer','trendline',
+                      'cursor'             
             ]
         },{
             title: 'Mixed Data Input',

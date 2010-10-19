@@ -5,7 +5,7 @@
  * 
  * About: Version
  * 
- * 0.9.7r597 
+ * 0.9.7r629 
  * 
  * About: Copyright & License
  * 
@@ -17,8 +17,8 @@
  * See <GPL Version 2> and <MIT License> contained within this distribution for further information. 
  *
  * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php.  This is, of course, not required.
+ * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
+ * or see http://www.jqplot.com/info.php.  This is, of course, not required.
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php.
@@ -108,7 +108,7 @@
      * 
      * attributes:
      * enablePlugins - False to disable plugins by default.  Plugins must then be explicitly 
-     *   enabled in the individual plot options.  Default: true.
+     *   enabled in the individual plot options.  Default: false.
      *   This property sets the "show" property of certain plugins to true or false.
      *   Only plugins that can be immediately active upon loading are affected.  This includes
      *   non-renderer plugins like cursor, dragable, highlighter, and trendline.
@@ -390,10 +390,12 @@
         // renderer specific options.  See <$.jqplot.LinearAxisRenderer> for options.
         this.rendererOptions = {};
         // prop: showTicks
-        // wether to show the ticks (both marks and labels) or not.
+        // Wether to show the ticks (both marks and labels) or not.
+        // Will not override showMark and showLabel options if specified on the ticks themselves.
         this.showTicks = true;
         // prop: showTickMarks
-        // wether to show the tick marks (line crossing grid) or not.
+        // Wether to show the tick marks (line crossing grid) or not.
+        // Overridden by showTicks and showMark option of tick itself.
         this.showTickMarks = true;
         // prop: showMinorTicks
         // Wether or not to show minor ticks.  This is renderer dependent.
@@ -442,6 +444,18 @@
         this.renderer = new this.renderer();
         // set the axis name
         this.tickOptions.axis = this.name;
+        // if showMark or showLabel tick options not specified, use value of axis option.
+        // showTicks overrides showTickMarks.
+        if (this.tickOptions.showMark == null) {
+            this.tickOptions.showMark = this.showTicks;
+        }
+        if (this.tickOptions.showMark == null) {
+            this.tickOptions.showMark = this.showTickMarks;
+        }
+        if (this.tickOptions.showLabel == null) {
+            this.tickOptions.showLabel = this.showTicks;
+        }
+        
         if (this.label == null || this.label == '') {
             this.showLabel = false;
         }
@@ -1399,6 +1413,12 @@
         // true or false, creates a stack or "mountain" plot.
         // Not all series renderers may implement this option.
         this.stackSeries = false;
+        // prop: defaultAxisStart
+        // 1-D data series are internally converted into 2-D [x,y] data point arrays
+        // by jqPlot.  This is the default starting value for the missing x or y value.
+        // The added data will be a monotonically increasing series (e.g. [1, 2, 3, ...])
+        // starting at this value.
+        this.defaultAxisStart = 1;
         // array to hold the cumulative stacked series data.
         // used to ajust the individual series data, which won't have access to other
         // series data.
@@ -1864,6 +1884,7 @@
             if (this.options.captureRightClick) {
                 this.captureRightClick = this.options.captureRightClick;
             }
+            this.defaultAxisStart = (options && options.defaultAxisStart != null) ? options.defaultAxisStart : this.defaultAxisStart;
             var cg = new this.colorGenerator(this.seriesColors);
             // this._gridPadding = this.options.gridPadding;
             $.extend(true, this._gridPadding, this.options.gridPadding);
@@ -1881,7 +1902,7 @@
                 }    
             }
                 
-            var normalizeData = function(data, dir) {
+            var normalizeData = function(data, dir, start) {
                 // return data as an array of point arrays,
                 // in form [[x1,y1...], [x2,y2...], ...]
                 var temp = [];
@@ -1893,10 +1914,10 @@
                     // [[1, data[0]], [2, data[1]], ...]
                     for (i=0; i<data.length; i++) {
                         if (dir == 'vertical') {
-                            temp.push([i+1, data[i]]);   
+                            temp.push([start + i, data[i]]);   
                         }
                         else {
-                            temp.push([data[i], i+1]);
+                            temp.push([data[i], start+i]);
                         }
                     }
                 }            
@@ -1920,7 +1941,7 @@
                 if (temp.renderer.constructor == $.jqplot.barRenderer && temp.rendererOptions && temp.rendererOptions.barDirection == 'horizontal') {
                     dir = 'horizontal';
                 }
-                temp.data = normalizeData(this.data[i], dir);
+                temp.data = normalizeData(this.data[i], dir, this.defaultAxisStart);
                 switch (temp.xaxis) {
                     case 'xaxis':
                         temp._xaxis = this.axes.xaxis;
@@ -2265,56 +2286,6 @@
             return {offsets:go, gridPos:gridPos, dataPos:dataPos};
         }
         
-        function getNeighborPoint(plot, x, y) {
-            var ret = null;
-            var s, i, d0, d, j, r, k;
-            var threshold, t;
-            for (var k=plot.seriesStack.length-1; k>-1; k--) {
-                i = plot.seriesStack[k];
-                s = plot.series[i];
-                r = s.renderer;
-                if (s.show) {
-                    t = s.markerRenderer.size/2+s.neighborThreshold;
-                    threshold = (t > 0) ? t : 0;
-                    for (var j=0; j<s.gridData.length; j++) {
-                        p = s.gridData[j];
-                        // neighbor looks different to OHLC chart.
-                        if (r.constructor == $.jqplot.OHLCRenderer) {
-                            if (r.candleStick) {
-                                var yp = s._yaxis.series_u2p;
-                                if (x >= p[0]-r._bodyWidth/2 && x <= p[0]+r._bodyWidth/2 && y >= yp(s.data[j][2]) && y <= yp(s.data[j][3])) {
-                                    return {seriesIndex: i, pointIndex:j, gridData:p, data:s.data[j]};
-                                }
-                            }
-                            // if an open hi low close chart
-                            else if (!r.hlc){
-                                var yp = s._yaxis.series_u2p;
-                                if (x >= p[0]-r._tickLength && x <= p[0]+r._tickLength && y >= yp(s.data[j][2]) && y <= yp(s.data[j][3])) {
-                                    return {seriesIndex: i, pointIndex:j, gridData:p, data:s.data[j]};
-                                }
-                            }
-                            // a hi low close chart
-                            else {
-                                var yp = s._yaxis.series_u2p;
-                                if (x >= p[0]-r._tickLength && x <= p[0]+r._tickLength && y >= yp(s.data[j][1]) && y <= yp(s.data[j][2])) {
-                                    return {seriesIndex: i, pointIndex:j, gridData:p, data:s.data[j]};
-                                }
-                            }
-                            
-                        }
-                        else {
-                            d = Math.sqrt( (x-p[0]) * (x-p[0]) + (y-p[1]) * (y-p[1]) );
-                            if (d <= threshold && (d <= d0 || d0 == null)) {
-                               d0 = d;
-                               return {seriesIndex: i, pointIndex:j, gridData:p, data:s.data[j]};
-                            }
-                        }
-                    } 
-                }
-            }
-            return ret;
-        }
-        
         
         // function to check if event location is over a area area
         function checkIntersection(gridpos, plot) {
@@ -2481,8 +2452,6 @@
                         r = s.renderer;
                         if (s.show) {
                             if (s.fill) {
-                                x = gridpos.x;
-                                y = gridpos.y;
                                 // first check if it is in bounding box
                                 var inside = false;
                                 if (x>s._boundingBox[0][0] && x<s._boundingBox[1][0] && y>s._boundingBox[1][1] && y<s._boundingBox[0][1]) { 
@@ -2540,7 +2509,7 @@
                                         }
                             
                                     }
-                                    else {
+                                    else if (p[0] != null && p[1] != null){
                                         d = Math.sqrt( (x-p[0]) * (x-p[0]) + (y-p[1]) * (y-p[1]) );
                                         if (d <= threshold && (d <= d0 || d0 == null)) {
                                            d0 = d;
@@ -4138,11 +4107,11 @@
         if (!this.isTrendline && this.fill) {
         
             // prop: highlightMouseOver
-            // True to highlight slice when moused over.
+            // True to highlight area on a filled plot when moused over.
             // This must be false to enable highlightMouseDown to highlight when clicking on an area on a filled plot.
             this.highlightMouseOver = true;
             // prop: highlightMouseDown
-            // True to highlight when a mouse button is pressed over a area on a filled plot.
+            // True to highlight when a mouse button is pressed over an area on a filled plot.
             // This will be disabled if highlightMouseOver is true.
             this.highlightMouseDown = false;
             // prop: highlightColor
@@ -4186,11 +4155,27 @@
         this.gridData = [];
         this._prevGridData = [];
         for (var i=0; i<this.data.length; i++) {
-            if (data[i] != null) {
+            // if not a line series or if no nulls in data, push the converted point onto the array.
+            if (data[i][0] != null && data[i][1] != null) {
                 this.gridData.push([xp.call(this._xaxis, data[i][0]), yp.call(this._yaxis, data[i][1])]);
             }
-            if (pdata[i] != null) {
+            // else if there is a null, preserve it.
+            else if (data[i][0] == null) {
+                this.gridData.push([null, yp.call(this._yaxis, data[i][1])]);
+            }
+            else if (data[i][1] == null) {
+                this.gridData.push([xp.call(this._xaxis, data[i][0]), null]);
+            }
+            // if not a line series or if no nulls in data, push the converted point onto the array.
+            if (pdata[i] != null && pdata[i][0] != null && pdata[i][1] != null) {
                 this._prevGridData.push([xp.call(this._xaxis, pdata[i][0]), yp.call(this._yaxis, pdata[i][1])]);
+            }
+            // else if there is a null, preserve it.
+            else if (pdata[i] != null && pdata[i][0] == null) {
+                this._prevGridData.push([null, yp.call(this._yaxis, pdata[i][1])]);
+            }  
+            else if (pdata[i] != null && pdata[i][0] != null && pdata[i][1] == null) {
+                this._prevGridData.push([xp.call(this._xaxis, pdata[i][0]), null]);
             }
         }
     };
@@ -4208,8 +4193,16 @@
         var gd = [];
         var pgd = [];
         for (var i=0; i<data.length; i++) {
-            if (data[i] != null) {
+            // if not a line series or if no nulls in data, push the converted point onto the array.
+            if (data[i][0] != null && data[i][1] != null) {
                 gd.push([xp.call(this._xaxis, data[i][0]), yp.call(this._yaxis, data[i][1])]);
+            }
+            // else if there is a null, preserve it.
+            else if (data[i][0] == null) {
+                gd.push([null, yp.call(this._yaxis, data[i][1])]);
+            }
+            else if (data[i][1] == null) {
+                gd.push([xp.call(this._xaxis, data[i][0]), null]);
             }
         }
         return gd;
@@ -4323,6 +4316,9 @@
                             this.renderer.shapeRenderer.draw(ctx, gd, opts);
                         }
                     }
+                    /////////////////////////
+                    // Not filled to zero
+                    ////////////////////////
                     else {                    
                         // if stoking line as well as filling, get a copy of line data.
                         if (fillAndStroke) {
@@ -4398,7 +4394,9 @@
             // now draw the markers
             if (this.markerRenderer.show && !fill) {
                 for (i=0; i<gd.length; i++) {
-                    this.markerRenderer.draw(gd[i][0], gd[i][1], ctx, opts.markerOptions);
+                    if (gd[i][0] != null && gd[i][1] != null) {
+                        this.markerRenderer.draw(gd[i][0], gd[i][1], ctx, opts.markerOptions);
+                    }
                 }
             }
         }
@@ -4542,18 +4540,18 @@
             
             for (var j=0; j<d.length; j++) { 
                 if (this.name == 'xaxis' || this.name == 'x2axis') {
-                    if (d[j][0] < db.min || db.min == null) {
+                    if ((d[j][0] != null && d[j][0] < db.min) || db.min == null) {
                         db.min = d[j][0];
                     }
-                    if (d[j][0] > db.max || db.max == null) {
+                    if ((d[j][0] != null && d[j][0] > db.max) || db.max == null) {
                         db.max = d[j][0];
                     }
                 }              
                 else {
-                    if (d[j][1] < db.min || db.min == null) {
+                    if ((d[j][1] != null && d[j][1] < db.min) || db.min == null) {
                         db.min = d[j][1];
                     }
-                    if (d[j][1] > db.max || db.max == null) {
+                    if ((d[j][1] != null && d[j][1] > db.max) || db.max == null) {
                         db.max = d[j][1];
                     }
                 }              
@@ -4595,14 +4593,12 @@
                 elem.appendTo(this._elem);
             }
     
-            if (this.showTicks) {
-                var t = this._ticks;
-                for (var i=0; i<t.length; i++) {
-                    var tick = t[i];
-                    if (tick.showLabel && (!tick.isMinorTick || this.showMinorTicks)) {
-                        var elem = tick.draw(ctx);
-                        elem.appendTo(this._elem);
-                    }
+            var t = this._ticks;
+            for (var i=0; i<t.length; i++) {
+                var tick = t[i];
+                if (tick.showLabel && (!tick.isMinorTick || this.showMinorTicks)) {
+                    var elem = tick.draw(ctx);
+                    elem.appendTo(this._elem);
                 }
             }
         }
@@ -4625,7 +4621,7 @@
         var w = 0;
         var h = 0;
         var lshow = (this._label == null) ? false : this._label.show;
-        if (this.show && this.showTicks) {
+        if (this.show) {
             var t = this._ticks;
             for (var i=0; i<t.length; i++) {
                 var tick = t[i];
@@ -4700,26 +4696,12 @@
                 if (ut.constructor == Array) {
                     t.value = ut[0];
                     t.label = ut[1];
-                    if (!this.showTicks) {
-                        t.showLabel = false;
-                        t.showMark = false;
-                    }
-                    else if (!this.showTickMarks) {
-                        t.showMark = false;
-                    }
                     t.setTick(ut[0], this.name);
                     this._ticks.push(t);
                 }
                 
                 else {
                     t.value = ut;
-                    if (!this.showTicks) {
-                        t.showLabel = false;
-                        t.showMark = false;
-                    }
-                    else if (!this.showTickMarks) {
-                        t.showMark = false;
-                    }
                     t.setTick(ut, this.name);
                     this._ticks.push(t);
                 }
@@ -4991,6 +4973,17 @@
                                 this.numberTicks = Math.ceil(n) + 2;
                                 this.min = this.max - this.tickInterval * (this.numberTicks-1);
                             }
+                            else {
+                                // calculate a number of ticks so max is within axis scale
+                                this.numberTicks = Math.ceil((userMax - userMin)/this.tickInterval) + 1;
+                                // if user's min and max don't fit evenly in ticks, adjust.
+                                // This takes care of cases such as user min set to 0, max set to 3.5 but tick
+                                // format string set to %d (integer ticks)
+                                this.min =  Math.floor(userMin*Math.pow(10, precision))/Math.pow(10, precision);
+                                this.max =  Math.ceil(userMax*Math.pow(10, precision))/Math.pow(10, precision);
+                                // this.max = this.min + this.tickInterval*(this.numberTicks-1);
+                                this.numberTicks = Math.ceil((this.max - this.min)/this.tickInterval) + 1;
+                            }
                         }
                     }
                 }
@@ -5002,13 +4995,7 @@
                 tt = this.min + i * this.tickInterval;
                 var t = new this.tickRenderer(this.tickOptions);
                 // var t = new $.jqplot.AxisTickRenderer(this.tickOptions);
-                if (!this.showTicks) {
-                    t.showLabel = false;
-                    t.showMark = false;
-                }
-                else if (!this.showTickMarks) {
-                    t.showMark = false;
-                }
+
                 t.setTick(tt, this.name);
                 this._ticks.push(t);
             }
@@ -5450,9 +5437,21 @@
                 ctx.arc(points[0], points[1], points[2], points[3], points[4], true);                
             }
             else {
-                ctx.moveTo(points[0][0], points[0][1]);
-                for (var i=1; i<points.length; i++) {
-                    ctx.lineTo(points[i][0], points[i][1]);
+                var move = true;
+                for (var i=0; i<points.length; i++) {
+                    // skip to the first non-null point and move to it.
+                    if (points[i][0] != null && points[i][1] != null) {
+                        if (move) {
+                            ctx.moveTo(points[i][0], points[i][1]);
+                            move = false;
+                        }
+                        else {
+                            ctx.lineTo(points[i][0], points[i][1]);
+                        }
+                    }
+                    else {
+                        move = true;
+                    }
                 }
                 
             }
@@ -5567,9 +5566,21 @@
             }
         }
         else {
-            ctx.moveTo(points[0][0], points[0][1]);
-            for (var i=1; i<points.length; i++) {
-                ctx.lineTo(points[i][0], points[i][1]);
+            var move = true;
+            for (var i=0; i<points.length; i++) {
+                // skip to the first non-null point and move to it.
+                if (points[i][0] != null && points[i][1] != null) {
+                    if (move) {
+                        ctx.moveTo(points[i][0], points[i][1]);
+                        move = false;
+                    }
+                    else {
+                        ctx.lineTo(points[i][0], points[i][1]);
+                    }
+                }
+                else {
+                    move = true;
+                }
             }
             if (closePath) {
                 ctx.closePath();

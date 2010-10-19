@@ -5,8 +5,8 @@
  * choose the license that best suits your project and use it accordingly. 
  *
  * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
+ * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
+ * or see http://www.jqplot.com/info.php .  This is, of course, 
  * not required.
  *
  * If you are feeling kind and generous, consider supporting the project by
@@ -77,7 +77,7 @@
         this.labelsFromSeries = false;
         // prop: seriesLabelIndex
         // array index for location of labels within data point arrays.
-        // if null, will use the last element of teh data point array.
+        // if null, will use the last element of the data point array.
         this.seriesLabelIndex = null;
         // prop: labels
         // array of arrays of labels, one array for each series.
@@ -141,7 +141,7 @@
         if (p.seriesLabelIndex != null) {
             labelIdx = p.seriesLabelIndex;
         }
-        else if (this.renderer.constuctor == $.jqplot.BarRenderer && this.barDirection == 'horizontal') {
+        else if (this.renderer.constructor == $.jqplot.BarRenderer && this.barDirection == 'horizontal') {
             labelIdx = 0;
         }
         else {

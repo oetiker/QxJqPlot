@@ -5,8 +5,8 @@
  * choose the license that best suits your project and use it accordingly. 
  *
  * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
+ * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
+ * or see http://www.jqplot.com/info.php .  This is, of course, 
  * not required.
  *
  * If you are feeling kind and generous, consider supporting the project by
@@ -538,9 +538,18 @@
             if (!setmax && !setmin) {
                 var range = this.max - this.min;
                 tf = Math.floor(parseFloat((Math.log(range)/Math.log(10)).toFixed(11))) - 1;
-                var nticks = [5,6,4,7,3], res, numticks;
+                var nticks = [5,6,4,7,3,8,9,10,2], res, numticks, nonSigDigits=0, sigRange;
+                // check to see how many zeros are at the end of the range
+                if (range > 1) {
+                    var rstr = String(range);
+                    if (rstr.search(/\./) == -1) {
+                         var pos = rstr.search(/0+$/);
+                         nonSigDigits = (pos > 0) ? rstr.length - pos - 1 : 0;
+                    }
+                }
+                sigRange = range/Math.pow(10, nonSigDigits);
                 for (i=0; i<nticks.length; i++) {
-                    res = range/(nticks[i]-1)/Math.pow(10, tf);
+                    res = sigRange/(nticks[i]-1);
                     if (res == parseInt(res, 10)) {
                         this.numberTicks = nticks[i];
                         this.tickInterval = range/(this.numberTicks-1);
@@ -562,6 +571,14 @@
                 
                 if (!this.numberMinorTicks) {
                     this.numberMinorTicks = 1;
+                    var nums = [4, 5, 3, 6, 2];
+                    for (i=0; i<5; i++) {
+                        temp = this.tickInterval/nums[i];
+                        if (temp == parseInt(temp)) {
+                            this.numberMinorTicks = nums[i]-1;
+                            break;
+                        }
+                    }
                 }
             }
         }

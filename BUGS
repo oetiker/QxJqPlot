@@ -1,0 +1,9 @@
+Known Bugs
+----------
+
+* There seem to be issues with mouse interaction. Plugins highlit and
+  dragable do not work and the cursor plugins zoom functionality
+  only works when draging the mouse outside the chart canvas.
+ 
+  Since the official examples do work, I guess there is some unfortunate
+  interaction with the qooxdoo event system.
