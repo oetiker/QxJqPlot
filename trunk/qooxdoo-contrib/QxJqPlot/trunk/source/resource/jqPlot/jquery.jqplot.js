@@ -5,7 +5,7 @@
  * 
  * About: Version
  * 
- * 0.9.7r629 
+ * 0.9.7r635 
  * 
  * About: Copyright & License
  * 
@@ -187,6 +187,20 @@
     };
     
     $.jqplot.enablePlugins = $.jqplot.config.enablePlugins;
+    
+    // canvas related tests taken from modernizer:
+    // Copyright © 2009–2010 Faruk Ates.
+    // http://www.modernizr.com
+    
+    $.jqplot.support_canvas = function() {
+        return !!document.createElement('canvas').getContext;
+    };
+            
+    $.jqplot.support_canvas_text = function() {
+        return !!(document.createElement('canvas').getContext && typeof document.createElement('canvas').getContext('2d').fillText == 'function');
+    };
+    
+    $.jqplot.use_excanvas = ($.browser.msie && !$.jqplot.support_canvas()) ? true : false;
     
     /**
      * 
@@ -1259,7 +1273,7 @@
         this._elem.css({ position: 'absolute', left: this._offsets.left, top: this._offsets.top });
         
         this._elem.addClass(klass);
-        if ($.browser.msie) {
+        if ($.jqplot.use_excanvas) {
             window.G_vmlCanvasManager.init_(document);
             elem = window.G_vmlCanvasManager.initElement(elem);
         }
@@ -1334,6 +1348,14 @@
         // The data should be in the form of an array of 2D or 1D arrays like
         // > [ [[x1, y1], [x2, y2],...], [y1, y2, ...] ].
         this.data = [];
+        // prop dataRenderer
+        // A callable which can be used to preprocess data passed into the plot.
+        // Will be called with 2 arguments, the plot data and a reference to the plot.
+        this.dataRenderer;
+        // prop dataRendererOptions
+        // Options that will be passed to the dataRenderer.
+        // Can be of any type.
+        this.dataRendererOptions;
         // The id of the dom element to render the plot into
         this.targetId = null;
         // the jquery object for the dom target.
@@ -1547,12 +1569,21 @@
                 throw "Canvas dimension not set";
             }
             
+            if (options.dataRenderer && typeof(options.dataRenderer) == "function") {
+                if (options.dataRendererOptions) {
+                    this.dataRendererOptions = options.dataRendererOptions;
+                }
+                this.dataRenderer = options.dataRenderer;
+                data = this.dataRenderer(data, this, this.dataRendererOptions);
+            }
+            
             if (data == null) {
                 throw{
                     name: "DataError",
                     message: "No data to plot."
                 };
             }
+            
             if (data.constructor != Array || data.length == 0 || data[0].constructor != Array || data[0].length == 0) {
                 throw{
                     name: "DataError",
@@ -3178,10 +3209,10 @@
         this._elem = $(elem);
         this._elem.addClass('jqplot-grid-canvas');
         this._elem.css({ position: 'absolute', left: 0, top: 0 });
-        if ($.browser.msie) {
+        if ($.jqplot.use_excanvas) {
             window.G_vmlCanvasManager.init_(document);
         }
-        if ($.browser.msie) {
+        if ($.jqplot.use_excanvas) {
             elem = window.G_vmlCanvasManager.initElement(elem);
         }
         this._top = this._offsets.top;
