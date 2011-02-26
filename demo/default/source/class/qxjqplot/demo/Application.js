@@ -82,7 +82,8 @@ qx.Class.define("qxjqplot.demo.Application", {
                 stackSeries: true,
                 legend: {show: true, location: 'nw'},
                 title: 'Unit Revenues: Acme Traps Division',
-                seriesDefaults: {renderer: $jqplot.BarRenderer,rendererOptions: {barWidth: 50}},
+                seriesDefaults: {renderer: $jqplot.BarRenderer,rendererOptions: {barWidth: 50}
+                },
                 series: [{label: '1st Qtr'}, {label: '2nd Qtr'}],
                 axes: {
                     xaxis: {
