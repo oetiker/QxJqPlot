@@ -7,7 +7,7 @@ qx.Class.define("qxjqplot.demo.Application", {
     members : {
     main : function() {
         this.base(arguments);
-        if (qx.core.Variant.isSet("qx.debug", "on")){
+        if (qx.core.Environment.get("qx.debug") ==  "on"){
             // support native logging capabilities, e.g. Firebug for Firefox
             qx.log.appender.Native;
             // support additional cross-browser console. Press F7 to toggle visibility
