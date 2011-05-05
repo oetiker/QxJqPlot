@@ -49,7 +49,7 @@ qx.Class.define("qxjqplot.Plot", {
     construct: function(dataSeries,getOptions,pluginArr){
         this.base(arguments);
         var min = '.min';
-        if (qx.core.Variant.isSet("qx.debug", "on")) {
+        if (qx.core.Environment.get("qx.debug") ==  "on") {
             min = '';
         }
         /* I guess it would not be all that difficult to create a stripped
