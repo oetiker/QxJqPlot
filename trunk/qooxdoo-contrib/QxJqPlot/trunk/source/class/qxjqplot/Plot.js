@@ -61,7 +61,7 @@ qx.Class.define("qxjqplot.Plot", {
             "jquery.jqplot"+min+".js"
         ];
 
-        if (qx.bom.client.Engine.MSHTML && qx.bom.client.Engine.VERSION < 9.0 && !window.G_vmlCanvasManager){
+        if ( ! qx.core.Environment.get('html.canvas') && qx.core.Environment.get('engine.name') == 'mshtml' && !window.G_vmlCanvasManager){
             codeArr.push("excanvas"+min+".js");
         }
 
