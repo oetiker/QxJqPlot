@@ -61,8 +61,11 @@ qx.Class.define("qxjqplot.Plot", {
             "jquery.jqplot"+min+".js"
         ];
 
-        if ( ! qx.core.Environment.get('html.canvas') && qx.core.Environment.get('engine.name') == 'mshtml' && !window.G_vmlCanvasManager){
-            codeArr.push("excanvas"+min+".js");
+        if ( ! qx.core.Environment.get('html.canvas') && qx.core.Environment.get('engine.name') == 'mshtml'){
+            this.__useExCanvas = true;
+            if (!window.G_vmlCanvasManager){
+                codeArr.push("excanvas"+min+".js");
+            }
         }
 
         if (pluginArr){
@@ -114,7 +117,8 @@ qx.Class.define("qxjqplot.Plot", {
          */
         scriptLoaded: 'qx.event.type.Event'
     },
-    members : {        
+    members : { 
+         __useExCanvas: false,       
         /**
          * Once the jqPlot object has been created, returns a handle to the plot object
          * use the plotCreated to learn when the plot gets created.
@@ -191,7 +195,7 @@ qx.Class.define("qxjqplot.Plot", {
                  add the missing method to the canvas
                  element first since the initial loading
                  only catches elements from the original html */
-                if (!el.getContext && window.G_vmlCanvasManager) {
+                if (this.__useExCanvas) {
                    window.G_vmlCanvasManager.initElement(el);
                 }
 
