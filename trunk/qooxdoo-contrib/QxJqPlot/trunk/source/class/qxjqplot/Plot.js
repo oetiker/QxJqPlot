@@ -2,7 +2,7 @@
 
    Copyright:
      2010 OETIKER+PARTNER AG, Tobi Oetiker, http://www.oetiker.ch
-     
+
    License:
      LGPL: http://www.gnu.org/licenses/lgpl.html
      EPL: http://www.eclipse.org/org/documents/epl-v10.php
@@ -16,6 +16,8 @@
 /* ************************************************************************
 
 #asset(jqPlot/*)
+#ignore(jQuery)
+#ignore(jQuery.jqplot.config)
 
 ************************************************************************ */
 
@@ -26,14 +28,14 @@
  * for information on how to use jqPlot.
  *
  * <pre class='javascript'>
- * var data = [[['frogs',3], ['buzzards',7], ['deer',2.5], ['turkeys',6], ['moles',5], ['ground hogs',4]]],           
- * var options = function($jqplot){return{                  
- *     title: 'Pie Chart with Legend and sliceMargin',         
- *     seriesDefaults:{renderer:$jqplot.PieRenderer, rendererOptions:{sliceMargin:8}},         
- *     legend:{show:true}         
- *  }};        
- * var plugins = ['pieRenderer'];   
- * var plot = new qxjqplot.Plot(data,options,plugins); 
+ * var data = [[['frogs',3], ['buzzards',7], ['deer',2.5], ['turkeys',6], ['moles',5], ['ground hogs',4]]],
+ * var options = function($jqplot){return{
+ *     title: 'Pie Chart with Legend and sliceMargin',
+ *     seriesDefaults:{renderer:$jqplot.PieRenderer, rendererOptions:{sliceMargin:8}},
+ *     legend:{show:true}
+ *  }};
+ * var plugins = ['pieRenderer'];
+ * var plot = new qxjqplot.Plot(data,options,plugins);
  * </pre>
  */
 qx.Class.define("qxjqplot.Plot", {
@@ -49,7 +51,7 @@ qx.Class.define("qxjqplot.Plot", {
     construct: function(dataSeries,getOptions,pluginArr){
         this.base(arguments);
         var min = '.min';
-        if (qx.core.Environment.get("qx.debug") ==  "on") {
+        if (qx.core.Environment.get("qx.debug")) {
             min = '';
         }
         /* I guess it would not be all that difficult to create a stripped
@@ -57,7 +59,7 @@ qx.Class.define("qxjqplot.Plot", {
          * this instead of full jQuery.
          */
         var codeArr = [
-            "jquery-1.4.3"+min+".js",
+            "jquery"+min+".js",
             "jquery.jqplot"+min+".js"
         ];
 
@@ -76,7 +78,7 @@ qx.Class.define("qxjqplot.Plot", {
         this.__addCss("jquery.jqplot"+min+".css");
         this.__loadScriptArr(codeArr,qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions));
     },
-    statics : { 
+    statics : {
         INSTANCE_COUNTER : 0,
         /**
          * map of loaded scripts
@@ -96,7 +98,7 @@ qx.Class.define("qxjqplot.Plot", {
                 '#ff811b', '#007333', '#ffe370', '#a6004f', '#a6004f',
                 '#bde734', '#0094d8', '#ffbedd'
             ],
-            grid: { 
+            grid: {
                 background: '#ffffff'
             },
             seriesDefaults: {
@@ -117,17 +119,17 @@ qx.Class.define("qxjqplot.Plot", {
          */
         scriptLoaded: 'qx.event.type.Event'
     },
-    members : { 
-         __useExCanvas: false,       
+    members : {
+         __useExCanvas: false,
         /**
          * Once the jqPlot object has been created, returns a handle to the plot object
          * use the plotCreated to learn when the plot gets created.
-         * 
+         *
          * @return {jqPlotObject}
          */
         getPlotObject: function(){
             return this.__plotObject;
-        },        
+        },
         /**
          * Chain loading scripts.
          */
@@ -178,12 +180,10 @@ qx.Class.define("qxjqplot.Plot", {
         },
         /**
          * our copy of the plot object
-         */        
+         */
         __plotObject: null,
         /**
          * Create the canvas once everything is renderad
-         * 
-         * @lint ignoreUndefined(jQuery)
          */
         __addCanvas: function(dataSeries,getOptions){
             var el = this.getContentElement().getDomElement();
@@ -200,12 +200,12 @@ qx.Class.define("qxjqplot.Plot", {
                 }
 
                 var id = 'jqPlotId'+(qxjqplot.Plot.INSTANCE_COUNTER++);
-                qx.bom.element.Attribute.set(el, 'id', id); 
-                
+                qx.bom.element.Attribute.set(el, 'id', id);
+
                 var options = qx.lang.Type.isFunction(getOptions) ? getOptions(jQuery.jqplot) : getOptions;
                 qx.lang.Object.mergeWith(options,qxjqplot.Plot.DEFAULT_OPTIONS,false);
-                jQuery.jqplot.config.enablePlugins = false;                
-                var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);        
+                jQuery.jqplot.config.enablePlugins = false;
+                var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);
                 this.fireDataEvent('plotCreated', plot);
                 this.addListener('resize',qx.lang.Function.bind(this.__redraw,this,plot,id,dataSeries,options),this);
             }
@@ -214,7 +214,7 @@ qx.Class.define("qxjqplot.Plot", {
              // with out .flush() the plot div will not yet be
              // resized, causing the jqPlot not to render
              // properly
-              qx.html.Element.flush();                    
+              qx.html.Element.flush();
               if (!this.isSeeable()){
 //               // jqplot does not take kindely to being redrawn while not visible
                  return;
@@ -223,11 +223,11 @@ qx.Class.define("qxjqplot.Plot", {
               // it could be that others have been added since the last round
               // so we have to run the preInitHooks again or some plugins might
               // try to access non accessible structures
-              //for (var i=0; i<jQuery.jqplot.preInitHooks.length; i++) {
-              //    jQuery.jqplot.preInitHooks[i].call(plot, id, dataSeries, options);
-              //}
+//            for (var i=0; i<jQuery.jqplot.preInitHooks.length; i++) {
+//                  jQuery.jqplot.preInitHooks[i].call(plot, id, dataSeries, options);
+//            }
               plot.replot({
-//                  resetAxes: true
+                  resetAxes: true
               });
          }
     }

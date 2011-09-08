@@ -22,7 +22,7 @@ qx.Class.define("qxjqplot.demo.Application", {
                 title:'Data Point Highlighting with Trendline',
                 seriesDefaults: {  
                     trendline: { 
-                        show: true 
+                        show: true
                     }
                 },
                 highlighter: {
@@ -55,7 +55,7 @@ qx.Class.define("qxjqplot.demo.Application", {
                 } 
             }},
             plugins: ['highlighter','dragable',
-                      'dateAxisRenderer','trendline',
+                      'dateAxisRenderer', 'trendline',
                       'cursor'             
             ]
         },{
@@ -65,13 +65,15 @@ qx.Class.define("qxjqplot.demo.Application", {
                    [4, 25, 13, 22, 14, 17, 15]],
             options: {
                legend:{show:true}, 
+               seriesDefault: {},
                title:'Mixed Data Input Formats',
                series:[
                    {label:'Rising line', showLine:false, markerOptions:{style:'square'}},
                    {label:'Declining line'}, 
                    {label:'Zig Zag Line', lineWidth:5, showMarker:false}
                ]
-           }
+           },
+           plugins: []
         },{
             title: 'Unit Revenues: Acme Traps Division',
             data: [
