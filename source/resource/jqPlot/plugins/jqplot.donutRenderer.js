@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 - 2010 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
- * or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -70,7 +82,7 @@
         // Outer diameter of the donut, auto computed by default
         this.diameter = null;
         // prop: innerDiameter
-        // Inner diameter of teh donut, auto calculated by default.
+        // Inner diameter of the donut, auto calculated by default.
         // If specified will override thickness value.
         this.innerDiameter = null;
         // prop: thickness
@@ -129,7 +141,7 @@
         // prop: dataLabelPositionFactor
         // A Multiplier (0-1) of the pie radius which controls position of label on slice.
         // Increasing will slide label toward edge of pie, decreasing will slide label toward center of pie.
-        this.dataLabelPositionFactor = 0.5;
+        this.dataLabelPositionFactor = 0.4;
         // prop: dataLabelNudge
         // Number of pixels to slide the label away from (+) or toward (-) the center of the pie.
         this.dataLabelNudge = 0;
@@ -144,6 +156,7 @@
         this.tickRenderer = $.jqplot.DonutTickRenderer;
         // Used as check for conditions where donut shouldn't be drawn.
         this._drawData = true;
+        this._type = 'donut';
         
         // if user has passed in highlightMouseDown option and not set highlightMouseOver, disable highlightMouseOver
         if (options.highlightMouseDown && options.highlightMouseOver == null) {
@@ -412,7 +425,7 @@
                 }
                 else if (this.dataLabels == 'value') {
                     fstr = this.dataLabelFormatString || '%d';
-                    label = $.jqplot.sprintf(fstr, gd[i][1]);
+                    label = $.jqplot.sprintf(fstr, this.data[i][1]);
                 }
                 else if (this.dataLabels == 'percent') {
                     fstr = this.dataLabelFormatString || '%d%%';
@@ -862,17 +875,23 @@
     // create a canvas which we can draw on.
     // insert it before the eventCanvas, so eventCanvas will still capture events.
     function postPlotDraw() {
+        // Memory Leaks patch    
+        if (this.plugins.donutRenderer && this.plugins.donutRenderer.highlightCanvas) {
+            this.plugins.donutRenderer.highlightCanvas.resetCanvas();
+            this.plugins.donutRenderer.highlightCanvas = null;
+        }
+
         this.plugins.donutRenderer = {highlightedSeriesIndex:null};
         this.plugins.donutRenderer.highlightCanvas = new $.jqplot.GenericCanvas();
         // do we have any data labels?  if so, put highlight canvas before those
         // Fix for broken jquery :first selector with canvas (VML) elements.
         var labels = $(this.targetId+' .jqplot-data-label');
         if (labels.length) {
-            $(labels[0]).before(this.plugins.donutRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-donutRenderer-highlight-canvas', this._plotDimensions));
+            $(labels[0]).before(this.plugins.donutRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-donutRenderer-highlight-canvas', this._plotDimensions, this));
         }
         // else put highlight canvas before event canvas.
         else {
-            this.eventCanvas._elem.before(this.plugins.donutRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-donutRenderer-highlight-canvas', this._plotDimensions));
+            this.eventCanvas._elem.before(this.plugins.donutRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-donutRenderer-highlight-canvas', this._plotDimensions, this));
         }
         var hctx = this.plugins.donutRenderer.highlightCanvas.setContext();
     }

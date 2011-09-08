@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 - 2010 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris at jqplot dot com 
- * or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -158,7 +170,7 @@
                 }
             }
             else {
-                var d = this.data;
+                var d = this._plotData;
                 if (this.renderer.constructor == $.jqplot.BarRenderer && this.waterfall) {
                     d = this._data;
                 }
@@ -168,6 +180,7 @@
                         p._labels.push(d[i][labelIdx]);
                     }
                 }
+                d = null;
             }
         }
         else if (p.labels.length){
@@ -256,8 +269,12 @@
         p.setLabels.call(this);
         // remove any previous labels
         for (var i=0; i<p._elems.length; i++) {
-            p._elems[i].remove();
+            // Memory Leaks patch
+            // p._elems[i].remove();
+            p._elems[i].emptyForce();
         }
+        p._elems.splice(0, p._elems.length);
+
         if (p.show) {
             var ax = '_'+this._stackAxis+'axis';
         
@@ -269,8 +286,9 @@
             var pd = this._plotData;
             var xax = this._xaxis;
             var yax = this._yaxis;
+            var elem, helem;
 
-            for (var i=p._labels.length-1; i>=0; i--) {
+            for (var i=0, l=p._labels.length; i < l; i++) {
                 var label = p._labels[i];
                 
                 if (p.hideZeros && parseInt(p._labels[i], 10) == 0) {
@@ -280,9 +298,17 @@
                 if (label != null) {
                     label = p.formatter(p.formatString, label);
                 } 
-                var elem = $('<div class="jqplot-point-label jqplot-series-'+this.index+' jqplot-point-'+i+'" style="position:absolute"></div>');
+
+                helem = document.createElement('div');
+                p._elems[i] = $(helem);
+
+                elem = p._elems[i];
+
+
+                elem.addClass('jqplot-point-label jqplot-series-'+this.index+' jqplot-point-'+i);
+                elem.css('position', 'absolute');
                 elem.insertAfter(sctx.canvas);
-                p._elems.push(elem);
+
                 if (p.escapeHTML) {
                     elem.text(label);
                 }
@@ -290,7 +316,7 @@
                     elem.html(label);
                 }
                 var location = p.location;
-                if (this.waterfall && parseInt(label, 10) < 0) {
+                if ((this.fillToZero && pd[i][1] < 0) || (this.waterfall && parseInt(label, 10)) < 0) {
                     location = oppositeLocations[locationIndicies[location]];
                 }
                 var ell = xax.u2p(pd[i][0]) + p.xOffset(elem, location);
@@ -305,8 +331,8 @@
                 }
                 elem.css('left', ell);
                 elem.css('top', elt);
-                var elr = ell + $(elem).width();
-                var elb = elt + $(elem).height();
+                var elr = ell + elem.width();
+                var elb = elt + elem.height();
                 var et = p.edgeTolerance;
                 var scl = $(sctx.canvas).position().left;
                 var sct = $(sctx.canvas).position().top;
@@ -314,8 +340,10 @@
                 var scb = sctx.canvas.height + sct;
                 // if label is outside of allowed area, remove it
                 if (ell - et < scl || elt - et < sct || elr + et > scr || elb + et > scb) {
-                    $(elem).detach();
+                    elem.remove();
                 }
+                elem = null;
+                helem = null;
             }
         }
     };

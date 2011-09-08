@@ -1,3 +1,6 @@
+// Memory Leaks patch from http://explorercanvas.googlecode.com/svn/trunk/ 
+//  svn : r73
+// ------------------------------------------------------------------
 // Copyright 2006 Google Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -171,6 +174,21 @@ if (!document.createElement('canvas').getContext) {
         //el.getContext().setCoordsize_()
       }
       return el;
+    },
+
+    // Memory Leaks patch : see http://code.google.com/p/explorercanvas/issues/detail?id=82
+    uninitElement: function(el){
+      if (el.getContext) {
+        var ctx = el.getContext();
+        delete ctx.element_;
+        delete ctx.canvas;
+        el.innerHTML = "";
+        //el.outerHTML = "";
+        el.context_ = null;
+        el.getContext = null;
+        el.detachEvent("onpropertychange", onPropertyChange);
+        el.detachEvent("onresize", onResize);
+      }
     }
   };
 
