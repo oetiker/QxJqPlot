@@ -25,7 +25,7 @@
 import sys, os, re, subprocess
 
 CMD_PYTHON = 'python'
-QOOXDOO_PATH = '../../qooxdoo/2.0'
+QOOXDOO_PATH = '../../qooxdoo/3.0'
 
 def getQxPath():
     path = QOOXDOO_PATH
