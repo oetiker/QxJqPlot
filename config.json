@@ -28,7 +28,7 @@
   {
     "APPLICATION"  : "qxjqplot",
     "APPLICATION_MAIN_CLASS" : "${APPLICATION}.demo.Demo",
-    "QOOXDOO_PATH" : "../../qooxdoo/2.0",
+    "QOOXDOO_PATH" : "../../qooxdoo/3.0",
     "QXTHEME"      : "qx.theme.Modern",
     "API_EXCLUDE"  : ["qx.test.*", "qxjqplot.demo.*", "${APPLICATION}.theme.*", "${APPLICATION}.test.*"],
     "LOCALES"      : [ "en" ],
