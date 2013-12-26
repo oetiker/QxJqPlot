@@ -146,17 +146,29 @@ qx.Class.define("qxjqplot.Plot", {
                 }
                 else {
                     qxjqplot.Plot.LOADING[script] = this;
-                    var sl = new qx.io.ScriptLoader();
                     var src = qx.util.ResourceManager.getInstance().toUri("jqPlot/"+script);
-                    sl.load(src, function(status){
-                        if (status == 'success'){
-                            // this.debug("Dynamically loaded "+src+": "+status);
-                            this.__loadScriptArr(codeArr,handler);
+                    if (qx.io.ScriptLoader){
+                        var sl = new qx.io.ScriptLoader();
+                        sl.load(src, function(status){
+                            if (status == 'success'){
+                                // this.debug("Dynamically loaded "+src+": "+status);
+                                this.__loadScriptArr(codeArr,handler);
+                                qxjqplot.Plot.LOADED[script] = true;
+                            }
+                            qxjqplot.Plot.LOADING[script] = null;
+                            this.fireDataEvent('scriptLoaded',script);
+                        },this);
+                    }
+                    else {
+                        var req = new qx.bom.request.Script();
+                        req.on('load',function() {
                             qxjqplot.Plot.LOADED[script] = true;
-                        }
-                        qxjqplot.Plot.LOADING[script] = null;
-                        this.fireDataEvent('scriptLoaded',script);
-                    },this);
+                            qxjqplot.Plot.LOADING[script] = null;   
+                            this.fireDataEvent('scriptLoaded',script);
+                        },this); 
+                        req.open("GET", src);
+                        req.send();
+                    }
                 }
             } else {
                 handler();
