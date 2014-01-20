@@ -152,11 +152,11 @@ qx.Class.define("qxjqplot.Plot", {
                         sl.load(src, function(status){
                             if (status == 'success'){
                                 // this.debug("Dynamically loaded "+src+": "+status);
-                                this.__loadScriptArr(codeArr,handler);
                                 qxjqplot.Plot.LOADED[script] = true;
+                                qxjqplot.Plot.LOADING[script] = null;
+                                this.fireDataEvent('scriptLoaded',script);
+                                this.__loadScriptArr(codeArr,handler);
                             }
-                            qxjqplot.Plot.LOADING[script] = null;
-                            this.fireDataEvent('scriptLoaded',script);
                         },this);
                     }
                     else {
@@ -165,6 +165,7 @@ qx.Class.define("qxjqplot.Plot", {
                             qxjqplot.Plot.LOADED[script] = true;
                             qxjqplot.Plot.LOADING[script] = null;   
                             this.fireDataEvent('scriptLoaded',script);
+                            this.__loadScriptArr(codeArr,handler);                            
                         },this); 
                         req.open("GET", src);
                         req.send();
