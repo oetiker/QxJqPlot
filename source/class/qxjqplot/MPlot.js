@@ -13,66 +13,6 @@
 
 ************************************************************************ */
 
-/**
- * A wrapper around jqPlot. The wrapper assumes to find an unpacked copy of
- * the jqPlot distribution in resource/jqPlot. See <a
- * href='http://http://www.jqplot.com' target='_blank'>jqPlot website</a>
- * for information on how to use jqPlot.
- *
- * <pre class='javascript'>
- * var data = [[['frogs',3], ['buzzards',7], ['deer',2.5], ['turkeys',6], ['moles',5], ['ground hogs',4]]],
- * var options = function($jqplot){return{
- *     title: 'Pie Chart with Legend and sliceMargin',
- *     seriesDefaults:{renderer:$jqplot.PieRenderer, rendererOptions:{sliceMargin:8}},
- *     legend:{show:true}
- *  }};
- * var plugins = ['pieRenderer'];
- * var plot = new qxjqplot.MobilePlot(data,options,plugins);
- * </pre>
- */
-qx.Class.define("qxjqplot.MobilePlot", {
-    extend : qx.ui.mobile.core.Widget,
-    include: [qxjqplot.MPlot],
-
-    /**
-     * @param dataSeries {Array} data array to plot
-     * @param getOptions {Callback|Map} wither an option map or a function returning the option map after being called with jQuery.jqplot as an argument.
-     * @param pluginArr  {Array} array of plugin base names. (use "cursor" not "jqplot.cursor.js")
-     *
-     */
-    construct: function(dataSeries,getOptions,pluginArr){
-        this.base(arguments);
-        this._setup(dataSeries, getOptions, pluginArr);
-    },
-
-    members : {
-
-      _getDomElement: function () {
-        return this.getContentElement();
-      },
-
-      _bindResizeEvent: function (plot, id, dataSeries, options) {
-        qx.event.Registration.addListener(window, "resize",
-            qx.lang.Function.bind(this._redraw, this, plot, id, dataSeries, options), this);
-      }
-    }
-});
-
-/* ************************************************************************
-
-   Copyright:
-     2010 OETIKER+PARTNER AG, Tobi Oetiker, http://www.oetiker.ch
-
-   License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
-
-   Authors:
-     * Tobi Oetiker (oetiker)
-
-************************************************************************ */
-
 /* ************************************************************************
 
 #asset(jqPlot/*)
@@ -98,46 +38,8 @@ qx.Class.define("qxjqplot.MobilePlot", {
  * var plot = new qxjqplot.Plot(data,options,plugins);
  * </pre>
  */
-qx.Class.define("qxjqplot.MobilePlot", {
-    extend : qx.ui.mobile.core.Widget,
+qx.Mixin.define("qxjqplot.MPlot", {
 
-    /**
-     * @param dataSeries {Array} data array to plot
-     * @param getOptions {Callback|Map} wither an option map or a function returning the option map after being called with jQuery.jqplot as an argument.
-     * @param pluginArr  {Array} array of plugin base names. (use "cursor" not "jqplot.cursor.js")
-     *
-     */
-
-    construct: function(dataSeries,getOptions,pluginArr){
-        this.base(arguments);
-        var min = '.min';
-        if (qx.core.Environment.get("qx.debug")) {
-            min = '';
-        }
-        /* I guess it would not be all that difficult to create a stripped
-         * down jQuery object with all the bits required by jqPlot and use
-         * this instead of full jQuery.
-         */
-        var codeArr = [
-            "jquery"+min+".js",
-            "jquery.jqplot"+min+".js"
-        ];
-
-        if ( ! qx.core.Environment.get('html.canvas') && qx.core.Environment.get('engine.name') == 'mshtml'){
-            this.__useExCanvas = true;
-            if (!window.G_vmlCanvasManager){
-                codeArr.push("excanvas"+min+".js");
-            }
-        }
-
-        if (pluginArr){
-            for (var i=0;i<pluginArr.length;i++){
-                codeArr.push('plugins/jqplot.'+pluginArr[i]+min+'.js');
-            }
-        }
-        this.__addCss("jquery.jqplot"+min+".css");
-        this.__loadScriptArr(codeArr,qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions));
-    },
     statics : {
         INSTANCE_COUNTER : 0,
         /**
@@ -169,6 +71,7 @@ qx.Class.define("qxjqplot.MobilePlot", {
             }
         }
     },
+
     events : {
         /**
          * returns the plot object
@@ -179,9 +82,47 @@ qx.Class.define("qxjqplot.MobilePlot", {
          */
         scriptLoaded: 'qx.event.type.Event'
     },
+
     members : {
-         __useExCanvas: false,
-        /**
+
+      __useExCanvas: false,
+
+      /**
+       * @param dataSeries {Array} data array to plot
+       * @param getOptions {Callback|Map} wither an option map or a function returning the option map after being called with jQuery.jqplot as an argument.
+       * @param pluginArr  {Array} array of plugin base names. (use "cursor" not "jqplot.cursor.js")
+       *
+       */
+      _setup: function (dataSeries, getOptions, pluginArr) {
+          var min = '.min';
+          if (qx.core.Environment.get("qx.debug")) {
+            min = '';
+          }
+          /* I guess it would not be all that difficult to create a stripped
+           * down jQuery object with all the bits required by jqPlot and use
+           * this instead of full jQuery.
+           */
+          var codeArr = [
+                "jquery" + min + ".js", "jquery.jqplot" + min + ".js"
+          ];
+
+          if (!qx.core.Environment.get('html.canvas') && qx.core.Environment.get('engine.name') == 'mshtml') {
+            this.__useExCanvas = true;
+            if (!window.G_vmlCanvasManager) {
+              codeArr.push("excanvas" + min + ".js");
+            }
+          }
+
+          if (pluginArr) {
+            for (var i = 0; i < pluginArr.length; i++) {
+              codeArr.push('plugins/jqplot.' + pluginArr[i] + min + '.js');
+            }
+          }
+          this.__addCss("jquery.jqplot" + min + ".css");
+          this.__loadScriptArr(codeArr, qx.lang.Function.bind(this.__addCanvas, this, dataSeries, getOptions));
+      },
+
+      /**
          * Once the jqPlot object has been created, returns a handle to the plot object
          * use the plotCreated to learn when the plot gets created.
          *
@@ -190,30 +131,31 @@ qx.Class.define("qxjqplot.MobilePlot", {
         getPlotObject: function(){
             return this.__plotObject;
         },
+
         /**
          * Chain loading scripts.
          */
         __loadScriptArr: function(codeArr,handler){
             var script = codeArr.shift();
             if (script){
-                if (qxjqplot.Plot.LOADING[script]){
-                    qxjqplot.Plot.LOADING[script].addListenerOnce('scriptLoaded',function(){
+                if (qxjqplot.MPlot.LOADING[script]){
+                    qxjqplot.MPlot.LOADING[script].addListenerOnce('scriptLoaded',function(){
                         this.__loadScriptArr(codeArr,handler);
                     },this);
                 }
-                else if ( qxjqplot.Plot.LOADED[script]){
+                else if ( qxjqplot.MPlot.LOADED[script]){
                      this.__loadScriptArr(codeArr,handler);
                 }
                 else {
-                    qxjqplot.Plot.LOADING[script] = this;
+                    qxjqplot.MPlot.LOADING[script] = this;
                     var src = qx.util.ResourceManager.getInstance().toUri("jqPlot/"+script);
                     if (qx.io.ScriptLoader){
                         var sl = new qx.io.ScriptLoader();
                         sl.load(src, function(status){
                             if (status == 'success'){
                                 // this.debug("Dynamically loaded "+src+": "+status);
-                                qxjqplot.Plot.LOADED[script] = true;
-                                qxjqplot.Plot.LOADING[script] = null;
+                                qxjqplot.MPlot.LOADED[script] = true;
+                                qxjqplot.MPlot.LOADING[script] = null;
                                 this.fireDataEvent('scriptLoaded',script);
                                 this.__loadScriptArr(codeArr,handler);
                             }
@@ -222,11 +164,11 @@ qx.Class.define("qxjqplot.MobilePlot", {
                     else {
                         var req = new qx.bom.request.Script();
                         req.on('load',function() {
-                            qxjqplot.Plot.LOADED[script] = true;
-                            qxjqplot.Plot.LOADING[script] = null;   
+                            qxjqplot.MPlot.LOADED[script] = true;
+                            qxjqplot.MPlot.LOADING[script] = null;
                             this.fireDataEvent('scriptLoaded',script);
-                            this.__loadScriptArr(codeArr,handler);                            
-                        },this); 
+                            this.__loadScriptArr(codeArr,handler);
+                        },this);
                         req.open("GET", src);
                         req.send();
                     }
@@ -239,8 +181,8 @@ qx.Class.define("qxjqplot.MobilePlot", {
          * Simple css loader without event support
          */
         __addCss: function(url){
-            if (!qxjqplot.Plot.LOADED[url]){
-                qxjqplot.Plot.LOADED[url]=true;
+            if (!qxjqplot.MPlot.LOADED[url]){
+                qxjqplot.MPlot.LOADED[url]=true;
                 var head = document.getElementsByTagName("head")[0];
                 var el = document.createElement("link");
                 el.type = "text/css";
@@ -255,13 +197,14 @@ qx.Class.define("qxjqplot.MobilePlot", {
          * our copy of the plot object
          */
         __plotObject: null,
+
         /**
          * Create the canvas once everything is renderad
          */
         __addCanvas: function(dataSeries,getOptions){
-            var el = this.getContentElement();
+            var el = this._getDomElement();
             /* make sure the element is here yet. Else wait until things show up */
-            if (el == null){
+            if (el == null || qx.dom.Element.getParentElement(el) == null){
                 this.addListenerOnce('appear',qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions),this);
             } else {
               /* with IE and excanvas, we have to
@@ -272,19 +215,18 @@ qx.Class.define("qxjqplot.MobilePlot", {
                    window.G_vmlCanvasManager.initElement(el);
                 }
 
-                var id = 'jqPlotId'+(qxjqplot.Plot.INSTANCE_COUNTER++);
+                var id = 'jqPlotId'+(qxjqplot.MPlot.INSTANCE_COUNTER++);
                 qx.bom.element.Attribute.set(el, 'id', id);
 
                 var options = qx.lang.Type.isFunction(getOptions) ? getOptions(jQuery.jqplot) : getOptions;
-                qx.lang.Object.mergeWith(options,qxjqplot.Plot.DEFAULT_OPTIONS,false);
+                qx.lang.Object.mergeWith(options,qxjqplot.MPlot.DEFAULT_OPTIONS,false);
                 jQuery.jqplot.config.enablePlugins = false;
                 var plot = this.__plotObject = jQuery.jqplot(id,dataSeries,options);
                 this.fireDataEvent('plotCreated', plot);
-                qx.event.Registration.addListener(window, "resize",
-                    qx.lang.Function.bind(this.__redraw, this, plot, id, dataSeries, options), this);
+              this._bindResizeEvent(plot, id, dataSeries, options);
             }
         },
-        __redraw: function(plot,id,dataSeries,options) {
+        _redraw: function(plot,id,dataSeries,options) {
              // with out .flush() the plot div will not yet be
              // resized, causing the jqPlot not to render
              // properly
