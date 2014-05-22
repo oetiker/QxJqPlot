@@ -204,7 +204,7 @@ qx.Mixin.define("qxjqplot.MPlot", {
         __addCanvas: function(dataSeries,getOptions){
             var el = this._getDomElement();
             /* make sure the element is here yet. Else wait until things show up */
-            if (el == null || qx.dom.Element.getParentElement(el) == null){
+            if (el == null || el.offsetParent === null){
                 this.addListenerOnce('appear',qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions),this);
             } else {
               /* with IE and excanvas, we have to
