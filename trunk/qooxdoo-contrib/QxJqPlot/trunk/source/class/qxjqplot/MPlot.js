@@ -137,44 +137,47 @@ qx.Mixin.define("qxjqplot.MPlot", {
          */
         __loadScriptArr: function(codeArr,handler){
             var script = codeArr.shift();
-            if (script){
-                if (qxjqplot.MPlot.LOADING[script]){
-                    qxjqplot.MPlot.LOADING[script].addListenerOnce('scriptLoaded',function(){
-                        this.__loadScriptArr(codeArr,handler);
-                    },this);
-                }
-                else if ( qxjqplot.MPlot.LOADED[script]){
-                     this.__loadScriptArr(codeArr,handler);
-                }
-                else {
-                    qxjqplot.MPlot.LOADING[script] = this;
-                    var src = qx.util.ResourceManager.getInstance().toUri("jqPlot/"+script);
-                    if (qx.io.ScriptLoader){
-                        var sl = new qx.io.ScriptLoader();
-                        sl.load(src, function(status){
-                            if (status == 'success'){
-                                // this.debug("Dynamically loaded "+src+": "+status);
-                                qxjqplot.MPlot.LOADED[script] = true;
-                                qxjqplot.MPlot.LOADING[script] = null;
-                                this.fireDataEvent('scriptLoaded',script);
-                                this.__loadScriptArr(codeArr,handler);
-                            }
-                        },this);
-                    }
-                    else {
-                        var req = new qx.bom.request.Script();
-                        req.on('load',function() {
-                            qxjqplot.MPlot.LOADED[script] = true;
-                            qxjqplot.MPlot.LOADING[script] = null;
-                            this.fireDataEvent('scriptLoaded',script);
-                            this.__loadScriptArr(codeArr,handler);
-                        },this);
-                        req.open("GET", src);
-                        req.send();
-                    }
-                }
-            } else {
+            if (!script){
                 handler();
+                return;
+            }
+            if ( qxjqplot.MPlot.LOADED[script]){
+                /* got this script, go for the next in the array */
+                 this.__loadScriptArr(codeArr,handler);
+                 return;
+            }
+            if (qxjqplot.MPlot.LOADING[script]){
+                /* not loaded but it is already loading, so let's listen for it to arrive */
+                qxjqplot.MPlot.LOADING[script].addListenerOnce('scriptLoaded',function(){
+                    this.__loadScriptArr(codeArr,handler);
+                },this);
+                return;
+            }
+            qxjqplot.MPlot.LOADING[script] = this;
+
+            var src = qx.util.ResourceManager.getInstance().toUri("jqPlot/"+script);
+            if (qx.io.ScriptLoader){
+                var sl = new qx.io.ScriptLoader();
+                sl.load(src, function(status){
+                    if (status == 'success'){
+                        // this.debug("Dynamically loaded "+src+": "+status);
+                        qxjqplot.MPlot.LOADED[script] = true;
+                        delete qxjqplot.MPlot.LOADING[script];
+                        this.fireDataEvent('scriptLoaded',script);
+                        this.__loadScriptArr(codeArr,handler);
+                    }
+                },this);
+            }
+            else {
+                var req = new qx.bom.request.Script();
+                req.on('load',function() {
+                    qxjqplot.MPlot.LOADED[script] = true;
+                    delete qxjqplot.MPlot.LOADING[script];
+                    this.fireDataEvent('scriptLoaded',script);
+                    this.__loadScriptArr(codeArr,handler);
+                },this);
+                req.open("GET", src);
+                req.send();
             }
         },
         /**
@@ -248,4 +251,3 @@ qx.Mixin.define("qxjqplot.MPlot", {
          }
     }
 });
-
