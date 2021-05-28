@@ -1,25 +1,21 @@
 /* ************************************************************************
 
    Copyright:
-     2010 OETIKER+PARTNER AG, Tobi Oetiker, http://www.oetiker.ch
+     2010,2021 OETIKER+PARTNER AG, Tobi Oetiker, http://www.oetiker.ch
 
    License:
-     LGPL: http://www.gnu.org/licenses/lgpl.html
-     EPL: http://www.eclipse.org/org/documents/epl-v10.php
-     See the LICENSE file in the project's top-level directory for details.
+     The same as Qooxdoo
 
    Authors:
      * Tobi Oetiker (oetiker)
 
 ************************************************************************ */
 
-/* ************************************************************************
-
-#asset(jqPlot/*)
-#ignore(jQuery)
-#ignore(jQuery.jqplot.config)
-
-************************************************************************ */
+/**
+ * @asset(jqPlot/*)
+ * @ignore(jQuery)
+ * @ignore(jQuery.jqplot.config)
+ */
 
 /**
  * A wrapper around jqPlot. The wrapper assumes to find an unpacked copy of
@@ -85,7 +81,7 @@ qx.Mixin.define("qxjqplot.MPlot", {
 
     members : {
 
-      __useExCanvas: false,
+      
 
       /**
        * @param dataSeries {Array} data array to plot
@@ -102,25 +98,26 @@ qx.Mixin.define("qxjqplot.MPlot", {
            * down jQuery object with all the bits required by jqPlot and use
            * this instead of full jQuery.
            */
+          var prefix = qx.util.ResourceManager.getInstance().toUri("jqPlot/");
           var codeArr = [
-                "jquery" + min + ".js", "jquery.jqplot" + min + ".js"
+                prefix+"jquery" + min + ".js", prefix+"jquery.jqplot" + min + ".js"
           ];
-
-          if (!qx.core.Environment.get('html.canvas') && qx.core.Environment.get('engine.name') == 'mshtml') {
-            this.__useExCanvas = true;
-            if (!window.G_vmlCanvasManager) {
-              codeArr.push("excanvas" + min + ".js");
-            }
-          }
-
           if (pluginArr) {
             for (var i = 0; i < pluginArr.length; i++) {
-              codeArr.push('plugins/jqplot.' + pluginArr[i] + min + '.js');
+              codeArr.push(prefix+'plugins/jqplot.' + pluginArr[i] + min + '.js');
             }
           }
           this.__addCss("jquery.jqplot" + min + ".css");
-          this.__loadScriptArr(codeArr, qx.lang.Function.bind(this.__addCanvas, this, dataSeries, getOptions));
-      },
+          let dynLoader = new qx.util.DynamicScriptLoader(codeArr);
+          dynLoader.addListenerOnce('ready',function(e){
+              this.__addCanvas(dataSeries,getOptions);
+          },this);
+          dynLoader.addListener('failed',function(e){
+            var data = e.getData();
+            console.log("failed to load "+data.script);
+          });
+          dynLoader.start();
+        },
 
       /**
          * Once the jqPlot object has been created, returns a handle to the plot object
@@ -132,54 +129,6 @@ qx.Mixin.define("qxjqplot.MPlot", {
             return this.__plotObject;
         },
 
-        /**
-         * Chain loading scripts.
-         */
-        __loadScriptArr: function(codeArr,handler){
-            var script = codeArr.shift();
-            if (!script){
-                handler();
-                return;
-            }
-            if ( qxjqplot.MPlot.LOADED[script]){
-                /* got this script, go for the next in the array */
-                 this.__loadScriptArr(codeArr,handler);
-                 return;
-            }
-            if (qxjqplot.MPlot.LOADING[script]){
-                /* not loaded but it is already loading, so let's listen for it to arrive */
-                qxjqplot.MPlot.LOADING[script].addListenerOnce('scriptLoaded',function(){
-                    this.__loadScriptArr(codeArr,handler);
-                },this);
-                return;
-            }
-            qxjqplot.MPlot.LOADING[script] = this;
-
-            var src = qx.util.ResourceManager.getInstance().toUri("jqPlot/"+script);
-            if (qx.io.ScriptLoader){
-                var sl = new qx.io.ScriptLoader();
-                sl.load(src, function(status){
-                    if (status == 'success'){
-                        // this.debug("Dynamically loaded "+src+": "+status);
-                        qxjqplot.MPlot.LOADED[script] = true;
-                        delete qxjqplot.MPlot.LOADING[script];
-                        this.fireDataEvent('scriptLoaded',script);
-                        this.__loadScriptArr(codeArr,handler);
-                    }
-                },this);
-            }
-            else {
-                var req = new qx.bom.request.Script();
-                req.on('load',function() {
-                    qxjqplot.MPlot.LOADED[script] = true;
-                    delete qxjqplot.MPlot.LOADING[script];
-                    this.fireDataEvent('scriptLoaded',script);
-                    this.__loadScriptArr(codeArr,handler);
-                },this);
-                req.open("GET", src);
-                req.send();
-            }
-        },
         /**
          * Simple css loader without event support
          */
@@ -202,7 +151,7 @@ qx.Mixin.define("qxjqplot.MPlot", {
         __plotObject: null,
 
         /**
-         * Create the canvas once everything is renderad
+         * Create the canvas once everything is rendered
          */
         __addCanvas: function(dataSeries,getOptions){
             var el = this._getDomElement();
@@ -210,14 +159,6 @@ qx.Mixin.define("qxjqplot.MPlot", {
             if (el == null || el.offsetParent === null){
                 this.addListenerOnce('appear',qx.lang.Function.bind(this.__addCanvas,this,dataSeries,getOptions),this);
             } else {
-              /* with IE and excanvas, we have to
-                 add the missing method to the canvas
-                 element first since the initial loading
-                 only catches elements from the original html */
-                if (this.__useExCanvas) {
-                   window.G_vmlCanvasManager.initElement(el);
-                }
-
                 var id = 'jqPlotId'+(qxjqplot.MPlot.INSTANCE_COUNTER++);
                 qx.bom.element.Attribute.set(el, 'id', id);
 
@@ -233,18 +174,18 @@ qx.Mixin.define("qxjqplot.MPlot", {
              // with out .flush() the plot div will not yet be
              // resized, causing the jqPlot not to render
              // properly
-              qx.html.Element.flush();
-              if (!this.isSeeable()){
-//               // jqplot does not take kindely to being redrawn while not visible
-                 return;
-              }
+            qx.html.Element.flush();
+            if (!this.isSeeable()){
+            // jqplot does not take kindely to being redrawn while not visible
+                return;
+            }
               // since we are loading plugins dynamically
               // it could be that others have been added since the last round
               // so we have to run the preInitHooks again or some plugins might
               // try to access non accessible structures
-//            for (var i=0; i<jQuery.jqplot.preInitHooks.length; i++) {
-//                  jQuery.jqplot.preInitHooks[i].call(plot, id, dataSeries, options);
-//            }
+              // for (var i=0; i<jQuery.jqplot.preInitHooks.length; i++) {
+              //     jQuery.jqplot.preInitHooks[i].call(plot, id, dataSeries, options);
+              //            }
               plot.replot({
                   resetAxes: true
               });

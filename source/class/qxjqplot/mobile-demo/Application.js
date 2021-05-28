@@ -11,9 +11,9 @@
 /**
  * This is the main application class of your custom application "qxjqplot.demo"
  *
- * @asset(qxjqplot.demo/*)
+ * @asset(qxjqplot.mobile-demo/*)
  */
-qx.Class.define("qxjqplot.demo.Application",
+qx.Class.define("qxjqplot.mobile-demo.Application",
 {
   extend : qx.application.Mobile,
 
